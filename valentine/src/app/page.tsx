@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 
 // =================== FINALE PAGE COMPONENT ===================
-function FinalePage() {
+function FinalePage({ userName }: { userName: string }) {
   const [showTitle, setShowTitle] = useState(false);
   const [showBoxes, setShowBoxes] = useState(false);
   const [openedBoxes, setOpenedBoxes] = useState<boolean[]>([false, false, false, false, false, false]);
@@ -12,12 +12,13 @@ function FinalePage() {
   const [allUnlocked, setAllUnlocked] = useState(false);
   const [showPromiseBtn, setShowPromiseBtn] = useState(false);
   const [showPromiseInterface, setShowPromiseInterface] = useState(false);
+  const [showNameInHeart, setShowNameInHeart] = useState(false);
   const [showPinkyPromise, setShowPinkyPromise] = useState(false);
   const [finalTypewriter, setFinalTypewriter] = useState("");
-  const [particles, setParticles] = useState<number[]>([]);
   const [rosePetals, setRosePetals] = useState<number[]>([]);
   const [candleLights, setCandleLights] = useState<number[]>([]);
   const [heartBoxMessage, setHeartBoxMessage] = useState("");
+  const [fireflies, setFireflies] = useState<Array<{ id: number; x: number; y: number; delay: number; duration: number }>>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const cuteMessages = [
@@ -34,7 +35,7 @@ function FinalePage() {
     { text: "Your smile is my favourite view", emoji: "😊", color: "from-rose-300/90 to-pink-500/90" },
     { text: "You complete me", emoji: "💕", color: "from-pink-500/90 to-red-400/90" },
     { text: "Forever wouldn't be long enough with you", emoji: "♾️", color: "from-violet-400/90 to-pink-400/90" },
-    { text: "I'm giving you my heart, it's all yours", emoji: "💖", color: "from-fuchsia-400/90 to-rose-400/90", isHeart: true },
+    { text: "Touch my heart to see what is inside it", emoji: "💖", color: "from-fuchsia-400/90 to-rose-400/90", isHeart: true },
   ];
 
   const openedCount = openedBoxes.filter(Boolean).length;
@@ -71,13 +72,6 @@ function FinalePage() {
     }
   }, [openedCount, allUnlocked]);
 
-  // Check if all boxes are opened
-  useEffect(() => {
-    if (openedCount === 6) {
-      setTimeout(() => setShowPromiseInterface(true), 1500);
-    }
-  }, [openedCount]);
-
   // Check if 5 boxes opened (can now open heart box)
   const first5Opened = openedBoxes.slice(0, 5).filter(Boolean).length;
   useEffect(() => {
@@ -104,19 +98,40 @@ function FinalePage() {
     return () => clearInterval(interval);
   }, [showPinkyPromise]);
 
-  // Spawn particles continuously
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setParticles((prev) => [...prev, Date.now()].slice(-30));
-    }, 300);
-    return () => clearInterval(interval);
-  }, []);
-
   // Spawn rose petals - romantic rain effect
   useEffect(() => {
     const interval = setInterval(() => {
       setRosePetals((prev) => [...prev, Date.now()].slice(-50));
     }, 250);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Spawn fireflies
+  useEffect(() => {
+    // Initial fireflies
+    const initialFireflies = Array.from({ length: 15 }, (_, i) => ({
+      id: Date.now() + i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      delay: Math.random() * 5,
+      duration: 8 + Math.random() * 6
+    }));
+    setFireflies(initialFireflies);
+    
+    // Add new fireflies periodically
+    const interval = setInterval(() => {
+      setFireflies(prev => [
+        ...prev.slice(-14),
+        {
+          id: Date.now(),
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          delay: 0,
+          duration: 8 + Math.random() * 6
+        }
+      ]);
+    }, 3000);
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -147,6 +162,15 @@ function FinalePage() {
     setOpenedBoxes(newOpened);
   };
 
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowNameInHeart(true);
+    setTimeout(() => {
+      setShowNameInHeart(false);
+      setShowPromiseInterface(true);
+    }, 3000);
+  };
+
   const handlePromiseClick = () => {
     setShowPromiseBtn(true);
   };
@@ -155,9 +179,37 @@ function FinalePage() {
     setShowPinkyPromise(true);
   };
 
+  // =================== NAME IN HEART TRANSITION ===================
+  if (showNameInHeart) {
+    return (
+      <div className="name-in-heart-page">
+        <div className="finale-gradient-bg" />
+        
+        {/* Fireflies */}
+        {fireflies.map((firefly) => (
+          <div
+            key={firefly.id}
+            className="firefly"
+            style={{
+              left: `${firefly.x}%`,
+              top: `${firefly.y}%`,
+              animationDelay: `${firefly.delay}s`,
+              animationDuration: `${firefly.duration}s`,
+            }}
+          />
+        ))}
+        
+        <div className="big-heart-with-name">
+          <div className="heart-shape">💖</div>
+          <div className="name-in-heart">{userName}</div>
+        </div>
+      </div>
+    );
+  }
+
   // =================== PROMISE INTERFACE ===================
   if (showPromiseInterface && !showPinkyPromise) {
-    return <PromiseInterface onProceed={handleFinalPromise} />;
+    return <PromiseInterface userName={userName} onProceed={handleFinalPromise} />;
   }
 
   // =================== PINKY PROMISE FINALE ===================
@@ -167,17 +219,41 @@ function FinalePage() {
         {/* Rose bloom background */}
         <div className="rose-bloom-bg" />
         
-        {/* Rose petals */}
-        {rosePetals.map((id) => (
+        {/* Fireflies */}
+        {fireflies.map((firefly) => (
           <div
-            key={id}
-            className="rose-petal-gradient"
+            key={firefly.id}
+            className="firefly"
             style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 2}s`,
+              left: `${firefly.x}%`,
+              top: `${firefly.y}%`,
+              animationDelay: `${firefly.delay}s`,
+              animationDuration: `${firefly.duration}s`,
             }}
           />
         ))}
+        
+        {/* Rose petals */}
+        {rosePetals.map((id) => {
+          const size = ['size-sm', 'size-md', 'size-lg'][Math.floor(Math.random() * 3)];
+          const shape = ['shape-1', 'shape-2', 'shape-3', 'shape-4'][Math.floor(Math.random() * 4)];
+          const animation = `petalFall${Math.floor(Math.random() * 4) + 1}`;
+          const duration = 10 + Math.random() * 8; // 10-18s
+          return (
+            <div
+              key={id}
+              className={`rose-petal-gradient ${size} ${shape}`}
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationName: animation,
+                animationDuration: `${duration}s`,
+                animationDelay: `${Math.random() * 3}s`,
+                animationTimingFunction: 'ease-in-out',
+                animationFillMode: 'forwards',
+              }}
+            />
+          );
+        })}
 
         {/* Pinky Promise Hands */}
         <div className="pinky-hands-container">
@@ -254,6 +330,20 @@ function FinalePage() {
       {/* Romantic gradient background */}
       <div className="finale-gradient-bg" />
 
+      {/* Fireflies */}
+      {fireflies.map((firefly) => (
+        <div
+          key={firefly.id}
+          className="firefly"
+          style={{
+            left: `${firefly.x}%`,
+            top: `${firefly.y}%`,
+            animationDelay: `${firefly.delay}s`,
+            animationDuration: `${firefly.duration}s`,
+          }}
+        />
+      ))}
+
       {/* Candlelight ambient glow */}
       {candleLights.map((id) => (
         <div
@@ -267,31 +357,26 @@ function FinalePage() {
       ))}
 
       {/* Gradient rose petals */}
-      {rosePetals.map((id) => (
-        <div
-          key={id}
-          className="rose-petal-gradient"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 2}s`,
-          }}
-        />
-      ))}
-
-      {/* Floating love particles */}
-      {particles.map((id, i) => (
-        <div
-          key={id}
-          className="finale-particle"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 2}s`,
-            fontSize: `${Math.random() * 20 + 14}px`,
-          }}
-        >
-          {["💕", "✨", "💖", "🌹", "💗", "💝", "💓", "🎀"][i % 8]}
-        </div>
-      ))}
+      {rosePetals.map((id) => {
+        const size = ['size-sm', 'size-md', 'size-lg'][Math.floor(Math.random() * 3)];
+        const shape = ['shape-1', 'shape-2', 'shape-3', 'shape-4'][Math.floor(Math.random() * 4)];
+        const animation = `petalFall${Math.floor(Math.random() * 4) + 1}`;
+        const duration = 10 + Math.random() * 8; // 10-18s
+        return (
+          <div
+            key={id}
+            className={`rose-petal-gradient ${size} ${shape}`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationName: animation,
+              animationDuration: `${duration}s`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationTimingFunction: 'ease-in-out',
+              animationFillMode: 'forwards',
+            }}
+          />
+        );
+      })}
 
       {/* Music visualizer bars */}
       <div className="visualizer-container">
@@ -343,20 +428,22 @@ function FinalePage() {
           {giftBoxMessages.map((gift, i) => (
             <div
               key={i}
-              className={`gift-box ${openedBoxes[i] ? 'opened' : 'closed'} ${!allUnlocked && openedCount >= 3 && !openedBoxes[i] ? 'locked' : ''}`}
+              className={`gift-box ${openedBoxes[i] ? 'opened' : 'closed'} ${!allUnlocked && openedCount >= 3 && !openedBoxes[i] ? 'locked' : ''} ${i === 5 ? 'special-heart-box' : ''}`}
               onClick={() => handleBoxClick(i)}
               style={{ animationDelay: `${i * 0.15}s` }}
             >
               {!openedBoxes[i] ? (
-                <div className="gift-wrapper">
-                  <div className="gift-box-top">🎁</div>
+                <div className={`gift-wrapper ${i === 5 ? 'special-wrapper' : ''}`}>
+                  {i === 5 && <div className="crown-icon">👑</div>}
+                  <div className="gift-box-top">{i === 5 ? '💝' : '🎁'}</div>
                   <div className="gift-bow">🎀</div>
                   <div className="gift-shimmer" />
+                  {i === 5 && <div className="special-sparkles" />}
                 </div>
               ) : (
                 <div className={`gift-content bg-gradient-to-br ${gift.color}`}>
                   {gift.isHeart ? (
-                    <div className="heart-gift">
+                    <div className="heart-gift" onClick={handleHeartClick} style={{ cursor: 'pointer' }}>
                       <div className="transparent-heart">❤️</div>
                       <div className="heart-glow" />
                     </div>
@@ -376,9 +463,10 @@ function FinalePage() {
 }
 
 // =================== PROMISE INTERFACE COMPONENT ===================
-function PromiseInterface({ onProceed }: { onProceed: () => void }) {
+function PromiseInterface({ userName, onProceed }: { userName: string; onProceed: () => void }) {
   const [rosePetals, setRosePetals] = useState<number[]>([]);
   const [showButton, setShowButton] = useState(false);
+  const [fireflies, setFireflies] = useState<Array<{ id: number; x: number; y: number; delay: number; duration: number }>>([]);
   
   useEffect(() => {
     const t = setTimeout(() => setShowButton(true), 1000);
@@ -392,21 +480,74 @@ function PromiseInterface({ onProceed }: { onProceed: () => void }) {
     return () => clearInterval(interval);
   }, []);
   
+  // Spawn fireflies
+  useEffect(() => {
+    // Initial fireflies
+    const initialFireflies = Array.from({ length: 15 }, (_, i) => ({
+      id: Date.now() + i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      delay: Math.random() * 5,
+      duration: 8 + Math.random() * 6
+    }));
+    setFireflies(initialFireflies);
+    
+    // Add new fireflies periodically
+    const interval = setInterval(() => {
+      setFireflies(prev => [
+        ...prev.slice(-14),
+        {
+          id: Date.now(),
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          delay: 0,
+          duration: 8 + Math.random() * 6
+        }
+      ]);
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   return (
     <div className="promise-interface">
       <div className="promise-bg" />
       
-      {/* Rose petals */}
-      {rosePetals.map((id) => (
+      {/* Fireflies */}
+      {fireflies.map((firefly) => (
         <div
-          key={id}
-          className="rose-petal-gradient"
+          key={firefly.id}
+          className="firefly"
           style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 2}s`,
+            left: `${firefly.x}%`,
+            top: `${firefly.y}%`,
+            animationDelay: `${firefly.delay}s`,
+            animationDuration: `${firefly.duration}s`,
           }}
         />
       ))}
+      
+      {/* Rose petals */}
+      {rosePetals.map((id) => {
+        const size = ['size-sm', 'size-md', 'size-lg'][Math.floor(Math.random() * 3)];
+        const shape = ['shape-1', 'shape-2', 'shape-3', 'shape-4'][Math.floor(Math.random() * 4)];
+        const animation = `petalFall${Math.floor(Math.random() * 4) + 1}`;
+        const duration = 10 + Math.random() * 8; // 10-18s
+        return (
+          <div
+            key={id}
+            className={`rose-petal-gradient ${size} ${shape}`}
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationName: animation,
+              animationDuration: `${duration}s`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationTimingFunction: 'ease-in-out',
+              animationFillMode: 'forwards',
+            }}
+          />
+        );
+      })}
       
       {/* Blooming Rose Animation */}
       <div className="blooming-rose-container">
@@ -422,12 +563,17 @@ function PromiseInterface({ onProceed }: { onProceed: () => void }) {
       
       {showButton && (
         <div className="promise-btn-container">
+          <div className="promise-to-name">
+            <p className="text-2xl md:text-3xl text-pink-200 font-semibold mb-6 text-center">
+              I promise you, {userName}...
+            </p>
+          </div>
           <Button
             onClick={onProceed}
             className="promise-btn bg-gradient-to-r from-rose-400 via-pink-500 to-red-500 text-white text-2xl px-12 py-8 rounded-full shadow-2xl hover:shadow-pink-500/50 transition-all duration-300 cursor-pointer h-auto"
             size="lg"
           >
-            💕 I promise.... 💕
+            🌹 Forever 🌹
           </Button>
         </div>
       )}
@@ -455,7 +601,7 @@ const noButtonTexts = [
 
 const loveMessages = [
   "You said yes my love 💕",
-  "and this is what my heart wants to say...",
+  "and this is what my heart want to say to the universe",
   "Sorry Sunset, her eyes are prettier ✨",
   "Sorry Moonlight, her eyes shine softer 🌙",
   "Hey ocean, her eyes hold deeper secrets than you 🌊",
@@ -465,6 +611,8 @@ const loveMessages = [
 ];
 
 export default function Home() {
+  const [userName, setUserName] = useState("");
+  const [nameSubmitted, setNameSubmitted] = useState(false);
   const [noTextIndex, setNoTextIndex] = useState(0);
   const [noPosition, setNoPosition] = useState({ x: 0, y: 0 });
   const [hasMoved, setHasMoved] = useState(false);
@@ -477,8 +625,10 @@ export default function Home() {
   const [floatingHearts, setFloatingHearts] = useState<number[]>([]);
   const [sparkles, setSparkles] = useState<number[]>([]);
   const [acceptedTypewriterText, setAcceptedTypewriterText] = useState<string[]>([]);
+  const [fireflies, setFireflies] = useState<Array<{id: number, x: number, y: number, delay: number, duration: number}>>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Spawn floating hearts continuously from the start until Click Me is pressed
   useEffect(() => {
@@ -486,6 +636,37 @@ export default function Home() {
     const interval = setInterval(() => {
       setFloatingHearts((prev) => [...prev, Date.now()].slice(-25));
     }, 400);
+    return () => clearInterval(interval);
+  }, [clickMePhase]);
+
+  // Spawn fireflies on question page and accepted state (not clickMePhase)
+  useEffect(() => {
+    if (clickMePhase) return;
+    
+    // Initial fireflies
+    const initialFireflies = Array.from({ length: 15 }, (_, i) => ({
+      id: Date.now() + i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      delay: Math.random() * 5,
+      duration: 8 + Math.random() * 6
+    }));
+    setFireflies(initialFireflies);
+    
+    // Add new fireflies periodically
+    const interval = setInterval(() => {
+      setFireflies(prev => [
+        ...prev.slice(-14),
+        {
+          id: Date.now(),
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          delay: 0,
+          duration: 8 + Math.random() * 6
+        }
+      ]);
+    }, 3000);
+    
     return () => clearInterval(interval);
   }, [clickMePhase]);
 
@@ -551,7 +732,14 @@ export default function Home() {
     const newY = Math.random() * maxY;
     setNoPosition({ x: newX, y: newY });
     setHasMoved(true);
-    setNoTextIndex((prev) => Math.min(prev + 1, noButtonTexts.length - 1));
+    // Pick a random index different from current one
+    setNoTextIndex((prev) => {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * noButtonTexts.length);
+      } while (newIndex === prev && noButtonTexts.length > 1);
+      return newIndex;
+    });
   }, []);
 
   const handleYes = () => {
@@ -563,16 +751,43 @@ export default function Home() {
     setClickMePhase(true);
   };
 
-  // =================== FINALE (CLICK ME) STATE ===================
-  if (clickMePhase) {
-    return <FinalePage />;
-  }
+  const formatNameToTitleCase = (name: string): string => {
+    return name
+      .trim()
+      .split(' ')
+      .map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join(' ');
+  };
 
-  // =================== ACCEPTED STATE ===================
-  if (accepted) {
+  const handleNameSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (userName.trim()) {
+      setUserName(formatNameToTitleCase(userName));
+      setNameSubmitted(true);
+    }
+  };
+
+  // =================== NAME INPUT SCREEN ===================
+  if (!nameSubmitted) {
     return (
-      <div className="valentine-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative p-4">
-        {/* Floating Hearts Background */}
+      <div className="valentine-bg min-h-screen flex flex-col items-center justify-center relative overflow-hidden p-4">
+        {/* Fireflies */}
+        {fireflies.map((firefly) => (
+          <div
+            key={firefly.id}
+            className="firefly"
+            style={{
+              left: `${firefly.x}%`,
+              top: `${firefly.y}%`,
+              animationDelay: `${firefly.delay}s`,
+              animationDuration: `${firefly.duration}s`,
+            }}
+          />
+        ))}
+
+        {/* Continuous floating hearts */}
         {floatingHearts.map((id, i) => (
           <div
             key={id}
@@ -580,11 +795,65 @@ export default function Home() {
             style={{
               left: `${Math.random() * 100}%`,
               animationDelay: `${Math.random() * 2}s`,
-              fontSize: `${Math.random() * 30 + 20}px`,
+              fontSize: `${Math.random() * 25 + 18}px`,
+              opacity: 0.5,
             }}
           >
             {["❤️", "💕", "💖", "💗", "💓", "💘", "💝"][i % 7]}
           </div>
+        ))}
+
+        <div className="name-input-container text-center z-10">
+          <h1 className="text-4xl md:text-6xl font-bold text-pink-400 mb-8 question-text">
+            Welcome! 💕
+          </h1>
+          <p className="text-xl md:text-2xl text-pink-300 mb-8">
+            Please enter your name to begin...
+          </p>
+          <form onSubmit={handleNameSubmit} className="flex flex-col items-center gap-6">
+            <input
+              ref={nameInputRef}
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Your name"
+              className="name-input px-6 py-4 text-xl md:text-2xl rounded-full border-2 border-pink-400 bg-white/10 backdrop-blur-md text-white placeholder-pink-200 focus:outline-none focus:ring-4 focus:ring-pink-500 focus:border-pink-500 text-center"
+              autoFocus
+            />
+            <Button
+              type="submit"
+              className="bg-gradient-to-r from-pink-500 via-rose-500 to-red-500 text-white text-xl md:text-2xl px-10 py-6 rounded-full shadow-2xl hover:shadow-pink-500/50 transition-all duration-300 cursor-pointer h-auto"
+              size="lg"
+            >
+              Continue ✨
+            </Button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // =================== FINALE (CLICK ME) STATE ===================
+  if (clickMePhase) {
+    return <FinalePage userName={userName} />;
+  }
+
+  // =================== ACCEPTED STATE ===================
+  if (accepted) {
+    return (
+      <div className="valentine-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative p-4">
+        {/* Fireflies */}
+        {fireflies.map((firefly) => (
+          <div
+            key={firefly.id}
+            className="firefly"
+            style={{
+              left: `${firefly.x}%`,
+              top: `${firefly.y}%`,
+              animationDelay: `${firefly.delay}s`,
+              animationDuration: `${firefly.duration}s`,
+            }}
+          />
         ))}
 
         {/* Sparkle Burst */}
@@ -652,6 +921,20 @@ export default function Home() {
       ref={containerRef}
       className="valentine-bg min-h-screen flex flex-col items-center justify-center relative overflow-hidden p-4"
     >
+      {/* Fireflies */}
+      {fireflies.map((firefly) => (
+        <div
+          key={firefly.id}
+          className="firefly"
+          style={{
+            left: `${firefly.x}%`,
+            top: `${firefly.y}%`,
+            animationDelay: `${firefly.delay}s`,
+            animationDuration: `${firefly.duration}s`,
+          }}
+        />
+      ))}
+
       {/* Continuous floating hearts */}
       {floatingHearts.map((id, i) => (
         <div

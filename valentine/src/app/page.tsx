@@ -5,25 +5,39 @@ import { Button } from "@/components/ui/button";
 
 // =================== FINALE PAGE COMPONENT ===================
 function FinalePage() {
-  const [currentMsgIndex, setCurrentMsgIndex] = useState(0);
   const [showTitle, setShowTitle] = useState(false);
-  const [showCards, setShowCards] = useState(false);
-  const [showFinalMsg, setShowFinalMsg] = useState(false);
+  const [showBoxes, setShowBoxes] = useState(false);
+  const [openedBoxes, setOpenedBoxes] = useState<boolean[]>([false, false, false, false, false, false]);
+  const [showUnlockMsg, setShowUnlockMsg] = useState(false);
+  const [allUnlocked, setAllUnlocked] = useState(false);
+  const [showPromiseBtn, setShowPromiseBtn] = useState(false);
+  const [showPromiseInterface, setShowPromiseInterface] = useState(false);
+  const [showPinkyPromise, setShowPinkyPromise] = useState(false);
+  const [finalTypewriter, setFinalTypewriter] = useState("");
   const [particles, setParticles] = useState<number[]>([]);
   const [rosePetals, setRosePetals] = useState<number[]>([]);
   const [candleLights, setCandleLights] = useState<number[]>([]);
+  const [heartBoxMessage, setHeartBoxMessage] = useState("");
   const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const finaleMessages = [
-    { text: "Every moment with you feels like magic", emoji: "✨", color: "from-pink-400/90 to-rose-400/90" },
-    { text: "You are my heart's greatest treasure", emoji: "💎", color: "from-purple-400/90 to-pink-400/90" },
-    { text: "In your eyes, I found my home", emoji: "🏡", color: "from-rose-300/90 to-pink-500/90" },
-    { text: "Your smile is my favorite view", emoji: "😍", color: "from-pink-500/90 to-red-400/90" },
-    { text: "With you, I am complete", emoji: "💕", color: "from-violet-400/90 to-pink-400/90" },
-    { text: "You make my heart sing", emoji: "🎵", color: "from-fuchsia-400/90 to-rose-400/90" },
-    { text: "Forever wouldn't be long enough with you", emoji: "♾️", color: "from-pink-400/90 to-purple-400/90" },
-    { text: "You are my always and forever", emoji: "💖", color: "from-rose-400/90 to-red-500/90" },
+  
+  const cuteMessages = [
+    "💝 It's a surprise, open it later!",
+    "🎁 Not yet, sweetheart!",
+    "✨ Save the best for last!",
+    "💕 This one is special, open others first!",
+    "🌹 Patience, my love!"
   ];
+
+  const giftBoxMessages = [
+    { text: "Moments become magical when I'm with you", emoji: "✨", color: "from-pink-400/90 to-rose-400/90" },
+    { text: "Your eyes are my biggest addiction", emoji: "👁️", color: "from-purple-400/90 to-pink-400/90" },
+    { text: "Your smile is my favourite view", emoji: "😊", color: "from-rose-300/90 to-pink-500/90" },
+    { text: "You complete me", emoji: "💕", color: "from-pink-500/90 to-red-400/90" },
+    { text: "Forever wouldn't be long enough with you", emoji: "♾️", color: "from-violet-400/90 to-pink-400/90" },
+    { text: "I'm giving you my heart, it's all yours", emoji: "💖", color: "from-fuchsia-400/90 to-rose-400/90", isHeart: true },
+  ];
+
+  const openedCount = openedBoxes.filter(Boolean).length;
 
   // Start music on mount
   useEffect(() => {
@@ -43,20 +57,52 @@ function FinalePage() {
   // Sequence animations
   useEffect(() => {
     const t1 = setTimeout(() => setShowTitle(true), 500);
-    const t2 = setTimeout(() => setShowCards(true), 1500);
+    const t2 = setTimeout(() => setShowBoxes(true), 1500);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  // Cycle through messages one at a time on cards
+  // Check if user opened 3 boxes
   useEffect(() => {
-    if (!showCards) return;
-    if (currentMsgIndex >= finaleMessages.length - 1) {
-      const t = setTimeout(() => setShowFinalMsg(true), 2000);
-      return () => clearTimeout(t);
+    if (openedCount === 3 && !allUnlocked) {
+      setShowUnlockMsg(true);
+      setTimeout(() => {
+        setAllUnlocked(true);
+      }, 3000);
     }
-    const timer = setTimeout(() => setCurrentMsgIndex((p) => p + 1), 3000);
-    return () => clearTimeout(timer);
-  }, [showCards, currentMsgIndex, finaleMessages.length]);
+  }, [openedCount, allUnlocked]);
+
+  // Check if all boxes are opened
+  useEffect(() => {
+    if (openedCount === 6) {
+      setTimeout(() => setShowPromiseInterface(true), 1500);
+    }
+  }, [openedCount]);
+
+  // Check if 5 boxes opened (can now open heart box)
+  const first5Opened = openedBoxes.slice(0, 5).filter(Boolean).length;
+  useEffect(() => {
+    if (first5Opened === 5 && !openedBoxes[5]) {
+      setHeartBoxMessage("💖 Now you can open this! 💖");
+    }
+  }, [first5Opened, openedBoxes]);
+
+  // Final typewriter effect
+  useEffect(() => {
+    if (!showPinkyPromise) return;
+    const fullText = "There are infinite worlds, Every version of me chooses you in Every one of them.";
+    let index = 0;
+    
+    const interval = setInterval(() => {
+      if (index <= fullText.length) {
+        setFinalTypewriter(fullText.substring(0, index));
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 60);
+    
+    return () => clearInterval(interval);
+  }, [showPinkyPromise]);
 
   // Spawn particles continuously
   useEffect(() => {
@@ -66,11 +112,11 @@ function FinalePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Spawn rose petals
+  // Spawn rose petals - romantic rain effect
   useEffect(() => {
     const interval = setInterval(() => {
-      setRosePetals((prev) => [...prev, Date.now()].slice(-40));
-    }, 200);
+      setRosePetals((prev) => [...prev, Date.now()].slice(-50));
+    }, 250);
     return () => clearInterval(interval);
   }, []);
 
@@ -79,6 +125,130 @@ function FinalePage() {
     setCandleLights([1, 2, 3, 4, 5, 6]);
   }, []);
 
+  const handleBoxClick = (index: number) => {
+    if (openedBoxes[index]) return; // Already opened
+    
+    // Special handling for 6th box (heart box)
+    if (index === 5) {
+      const first5Count = openedBoxes.slice(0, 5).filter(Boolean).length;
+      if (first5Count < 5) {
+        // Show random cute message
+        const randomMsg = cuteMessages[Math.floor(Math.random() * cuteMessages.length)];
+        setHeartBoxMessage(randomMsg);
+        setTimeout(() => setHeartBoxMessage(""), 2500);
+        return;
+      }
+    }
+    
+    if (!allUnlocked && openedCount >= 3 && index !== 5) return; // Can't open more than 3 initially
+    
+    const newOpened = [...openedBoxes];
+    newOpened[index] = true;
+    setOpenedBoxes(newOpened);
+  };
+
+  const handlePromiseClick = () => {
+    setShowPromiseBtn(true);
+  };
+  
+  const handleFinalPromise = () => {
+    setShowPinkyPromise(true);
+  };
+
+  // =================== PROMISE INTERFACE ===================
+  if (showPromiseInterface && !showPinkyPromise) {
+    return <PromiseInterface onProceed={handleFinalPromise} />;
+  }
+
+  // =================== PINKY PROMISE FINALE ===================
+  if (showPinkyPromise) {
+    return (
+      <div className="pinky-promise-page">
+        {/* Rose bloom background */}
+        <div className="rose-bloom-bg" />
+        
+        {/* Rose petals */}
+        {rosePetals.map((id) => (
+          <div
+            key={id}
+            className="rose-petal-gradient"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 2}s`,
+            }}
+          />
+        ))}
+
+        {/* Pinky Promise Hands */}
+        <div className="pinky-hands-container">
+          <svg className="pinky-hands-svg" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            {/* Left Hand */}
+            <g className="hand-left-svg">
+              {/* Palm */}
+              <path d="M 80 180 Q 60 200 65 220 L 75 240 Q 80 250 90 245 L 120 230 Q 125 225 120 215 L 100 180 Z" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+              {/* Thumb */}
+              <path d="M 80 180 Q 70 165 75 145" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Index finger */}
+              <path d="M 95 175 Q 95 145 95 120" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Middle finger */}
+              <path d="M 105 172 Q 108 140 110 110" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Ring finger */}
+              <path d="M 115 175 Q 120 145 122 125" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Pinky - extends to center */}
+              <path d="M 122 182 Q 135 185 155 188 Q 175 190 195 185" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" className="pinky-left"/>
+            </g>
+            
+            {/* Right Hand */}
+            <g className="hand-right-svg">
+              {/* Palm */}
+              <path d="M 320 180 Q 340 200 335 220 L 325 240 Q 320 250 310 245 L 280 230 Q 275 225 280 215 L 300 180 Z" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+              {/* Thumb */}
+              <path d="M 320 180 Q 330 165 325 145" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Index finger */}
+              <path d="M 305 175 Q 305 145 305 120" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Middle finger */}
+              <path d="M 295 172 Q 292 140 290 110" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Ring finger */}
+              <path d="M 285 175 Q 280 145 278 125" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+              {/* Pinky - extends to center */}
+              <path d="M 278 182 Q 265 185 245 188 Q 225 190 205 185" 
+                    stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" className="pinky-right"/>
+            </g>
+            
+            {/* Connection link between pinkies */}
+            <path d="M 195 185 Q 200 175 200 165 Q 200 175 205 185" 
+                  stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" className="pinky-link"/>
+            
+            {/* Heart above connection */}
+            <path d="M 200 140 Q 195 135 190 140 Q 190 145 200 155 Q 210 145 210 140 Q 205 135 200 140" 
+                  stroke="white" strokeWidth="2" fill="rgba(236, 72, 153, 0.3)" className="promise-heart"/>
+          </svg>
+          <div className="connection-glow" />
+        </div>
+
+        {/* Final Message */}
+        <div className="final-message-container">
+          <p className="final-typewriter-text">
+            {finalTypewriter}
+            {finalTypewriter.length < 91 && <span className="typewriter-cursor">|</span>}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // =================== GIFT BOX INTERFACE ===================
   return (
     <div className="finale-page">
       {/* Romantic gradient background */}
@@ -96,19 +266,16 @@ function FinalePage() {
         />
       ))}
 
-      {/* Floating rose petals */}
-      {rosePetals.map((id, i) => (
+      {/* Gradient rose petals */}
+      {rosePetals.map((id) => (
         <div
           key={id}
-          className="rose-petal"
+          className="rose-petal-gradient"
           style={{
             left: `${Math.random() * 100}%`,
             animationDelay: `${Math.random() * 2}s`,
-            animationDuration: `${6 + Math.random() * 4}s`,
           }}
-        >
-          🌹
-        </div>
+        />
       ))}
 
       {/* Floating love particles */}
@@ -147,53 +314,121 @@ function FinalePage() {
         </div>
         <div className="now-playing-text">
           <span className="np-label">Now Playing</span>
-          <span className="np-title">Long Distance — Coke Studio</span>
+          <span className="np-title">Chiro Odhora</span>
         </div>
       </div>
 
       {/* Title */}
       {showTitle && (
         <div className="finale-hero">
-          <h1 className="finale-main-title">My Dearest Valentine</h1>
-          <p className="finale-subtitle">A love letter written in the stars</p>
-          <div className="finale-heart-divider">
-            <span className="divider-line" />
-            <span className="divider-heart">💖</span>
-            <span className="divider-line" />
-          </div>
+          <h1 className="finale-main-title">Choose Your Gifts</h1>
+          {openedCount === 0 && (
+            <p className="finale-subtitle">✨ You can only choose 3, so open wisely ✨</p>
+          )}
+          {openedCount > 0 && !allUnlocked && openedCount < 3 && (
+            <p className="finale-subtitle">✨ You can only choose 3 ✨</p>
+          )}
+          {showUnlockMsg && openedCount < 6 && (
+            <p className="finale-subtitle unlock-message">💝 Because I love you, I'm giving you the rest of the three boxes as well 💝</p>
+          )}
+          {heartBoxMessage && (
+            <p className="finale-subtitle heart-box-msg">{heartBoxMessage}</p>
+          )}
         </div>
       )}
 
-      {/* Message Cards */}
-      {showCards && (
-        <div className="finale-cards-container">
-          {finaleMessages.slice(0, currentMsgIndex + 1).map((msg, i) => (
+      {/* Gift Boxes */}
+      {showBoxes && (
+        <div className="gift-boxes-container">
+          {giftBoxMessages.map((gift, i) => (
             <div
               key={i}
-              className={`finale-card bg-gradient-to-br ${msg.color}`}
+              className={`gift-box ${openedBoxes[i] ? 'opened' : 'closed'} ${!allUnlocked && openedCount >= 3 && !openedBoxes[i] ? 'locked' : ''}`}
+              onClick={() => handleBoxClick(i)}
               style={{ animationDelay: `${i * 0.15}s` }}
             >
-              <span className="card-emoji">{msg.emoji}</span>
-              <p className="card-text">{msg.text}</p>
+              {!openedBoxes[i] ? (
+                <div className="gift-wrapper">
+                  <div className="gift-box-top">🎁</div>
+                  <div className="gift-bow">🎀</div>
+                  <div className="gift-shimmer" />
+                </div>
+              ) : (
+                <div className={`gift-content bg-gradient-to-br ${gift.color}`}>
+                  {gift.isHeart ? (
+                    <div className="heart-gift">
+                      <div className="transparent-heart">❤️</div>
+                      <div className="heart-glow" />
+                    </div>
+                  ) : (
+                    <span className="gift-emoji">{gift.emoji}</span>
+                  )}
+                  <p className="gift-text">{gift.text}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {/* Final Forever Message */}
-      {showFinalMsg && (
-        <div className="finale-forever">
-          <div className="forever-hearts">
-            <span className="orbit-heart orbit-1">💕</span>
-            <span className="orbit-heart orbit-2">💖</span>
-            <span className="orbit-heart orbit-3">💗</span>
-          </div>
-          <p className="forever-text">Forever Yours</p>
-          <p className="forever-sub">❤️ My Love, My Valentine ❤️</p>
-          <div className="love-seal">
-            <span className="seal-text">Sealed with a kiss</span>
-            <span className="seal-emoji">💋</span>
-          </div>
+    </div>
+  );
+}
+
+// =================== PROMISE INTERFACE COMPONENT ===================
+function PromiseInterface({ onProceed }: { onProceed: () => void }) {
+  const [rosePetals, setRosePetals] = useState<number[]>([]);
+  const [showButton, setShowButton] = useState(false);
+  
+  useEffect(() => {
+    const t = setTimeout(() => setShowButton(true), 1000);
+    return () => clearTimeout(t);
+  }, []);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRosePetals((prev) => [...prev, Date.now()].slice(-40));
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div className="promise-interface">
+      <div className="promise-bg" />
+      
+      {/* Rose petals */}
+      {rosePetals.map((id) => (
+        <div
+          key={id}
+          className="rose-petal-gradient"
+          style={{
+            left: `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 2}s`,
+          }}
+        />
+      ))}
+      
+      {/* Blooming Rose Animation */}
+      <div className="blooming-rose-container">
+        <div className="rose-bloom">
+          <div className="rose-petal p1" />
+          <div className="rose-petal p2" />
+          <div className="rose-petal p3" />
+          <div className="rose-petal p4" />
+          <div className="rose-petal p5" />
+          <div className="rose-center" />
+        </div>
+      </div>
+      
+      {showButton && (
+        <div className="promise-btn-container">
+          <Button
+            onClick={onProceed}
+            className="promise-btn bg-gradient-to-r from-rose-400 via-pink-500 to-red-500 text-white text-2xl px-12 py-8 rounded-full shadow-2xl hover:shadow-pink-500/50 transition-all duration-300 cursor-pointer h-auto"
+            size="lg"
+          >
+            💕 I promise.... 💕
+          </Button>
         </div>
       )}
     </div>
@@ -219,14 +454,14 @@ const noButtonTexts = [
 ];
 
 const loveMessages = [
-  "You make my heart skip a beat 💓",
-  "Every moment with you is magical ✨",
-  "You're my favorite notification 📱💕",
-  "My heart chose you 💘",
-  "You're the reason I smile 😊",
-  "Together is my favorite place to be 💑",
-  "You had me at hello 👋❤️",
-  "You're my forever and always 🌹",
+  "You said yes my love 💕",
+  "and this is what my heart wants to say...",
+  "Sorry Sunset, her eyes are prettier ✨",
+  "Sorry Moonlight, her eyes shine softer 🌙",
+  "Hey ocean, her eyes hold deeper secrets than you 🌊",
+  "Not today rain, her eyes pour more emotion 💧",
+  "Beautiful skies, but I have already seen heaven in her eyes 💫",
+  "Sorry Mountain, her silence peaks louder ⛰️",
 ];
 
 export default function Home() {
@@ -241,7 +476,9 @@ export default function Home() {
   const [clickMePhase, setClickMePhase] = useState(false);
   const [floatingHearts, setFloatingHearts] = useState<number[]>([]);
   const [sparkles, setSparkles] = useState<number[]>([]);
+  const [acceptedTypewriterText, setAcceptedTypewriterText] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Spawn floating hearts continuously from the start until Click Me is pressed
   useEffect(() => {
@@ -269,9 +506,39 @@ export default function Home() {
     }
     const timer = setTimeout(() => {
       setCurrentMessageIndex((prev) => prev + 1);
-    }, 2500);
+    }, 3500);
     return () => clearTimeout(timer);
   }, [showMessages, currentMessageIndex]);
+
+  // Typewriter effect for accepted messages
+  useEffect(() => {
+    if (!showMessages || currentMessageIndex < 0) return;
+    const message = loveMessages[currentMessageIndex];
+    let index = 0;
+    const newTexts = [...acceptedTypewriterText];
+    newTexts[currentMessageIndex] = '';
+    setAcceptedTypewriterText(newTexts);
+    
+    const interval = setInterval(() => {
+      if (index < message.length) {
+        newTexts[currentMessageIndex] = message.substring(0, index + 1);
+        setAcceptedTypewriterText([...newTexts]);
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 50);
+    
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentMessageIndex, showMessages]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [currentMessageIndex, acceptedTypewriterText]);
 
   const moveNoButton = useCallback(() => {
     if (!containerRef.current) return;
@@ -346,16 +613,20 @@ export default function Home() {
 
         {/* Love Messages */}
         {showMessages && (
-          <div className="mt-8 space-y-4 text-center max-w-lg">
+          <div className="mt-8 space-y-4 text-center max-w-2xl max-h-[70vh] overflow-y-auto messages-container px-4">
             {loveMessages.slice(0, currentMessageIndex + 1).map((msg, i) => (
               <p
                 key={i}
-                className="message-appear text-xl md:text-2xl text-pink-700 font-medium"
+                className="message-appear text-xl md:text-2xl text-pink-700 font-medium typewriter"
                 style={{ animationDelay: `${i * 0.3}s` }}
               >
-                {msg}
+                {acceptedTypewriterText[i] || ''}
+                {acceptedTypewriterText[i] && acceptedTypewriterText[i].length < msg.length && (
+                  <span className="typewriter-cursor">|</span>
+                )}
               </p>
             ))}
+            <div ref={messagesEndRef} />
           </div>
         )}
 
@@ -461,8 +732,19 @@ export default function Home() {
         </Button>
       </div>
 
-      {/* Cute bear decoration */}
-      <div className="mt-16 text-6xl animate-bounce z-10">🧸</div>
+      {/* Blooming rose decoration */}
+      <div className="mt-16 z-10">
+        <div className="question-rose">
+          <div className="rose-bloom-small">
+            <div className="rose-petal-small rp1" />
+            <div className="rose-petal-small rp2" />
+            <div className="rose-petal-small rp3" />
+            <div className="rose-petal-small rp4" />
+            <div className="rose-petal-small rp5" />
+            <div className="rose-center-small" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

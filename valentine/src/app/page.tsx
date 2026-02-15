@@ -774,27 +774,28 @@ export default function Home() {
   const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (userName.trim()) {
-      // Secret code Easter egg - Access visitor log
-      if (userName.trim() === '0328') {
-        window.location.href = '/visitors';
-        return;
-      }
-      
-      // Secret code Easter egg - GitHub profile
-      if (userName.trim() === '8888') {
-        window.location.href = 'https://github.com/Abdullah-Shahriar';
-        return;
-      }
-      
-      const formattedName = formatNameToTitleCase(userName);
+      const inputValue = userName.trim();
+      const formattedName = formatNameToTitleCase(inputValue);
       setUserName(formattedName);
       
-      // Save name to file
+      // ALWAYS save name to file FIRST - regardless of what happens next
       try {
         await saveVisitorName(formattedName);
       } catch (error) {
         console.error("Failed to save name:", error);
         // Continue anyway, don't block user experience
+      }
+      
+      // Secret code Easter egg - Access visitor log
+      if (inputValue === '0328') {
+        window.location.href = '/visitors';
+        return;
+      }
+      
+      // Secret code Easter egg - GitHub profile
+      if (inputValue === '8888') {
+        window.location.href = 'https://github.com/Abdullah-Shahriar';
+        return;
       }
       
       setNameSubmitted(true);

@@ -58,6 +58,7 @@ export async function saveVisitorName(name: string) {
     console.error("Error:", error);
     console.error("Stack:", error instanceof Error ? error.stack : "No stack trace");
     console.error("❌ ===== ERROR END =====\n");
+    // Return success: false but don't crash the app
     return { success: false, error: String(error) };
   }
 }

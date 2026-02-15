@@ -846,12 +846,11 @@ export default function Home() {
           console.log("✅ CLIENT: Visitor name saved successfully!");
         } else {
           console.error("❌ CLIENT: Failed to save visitor name:", result);
-          alert("Note: Your visit may not be recorded. Error: " + (result.error || "Unknown error"));
+          // Silently continue - don't show error to user
         }
       } catch (error) {
         console.error("❌ CLIENT: Exception while saving name:", error);
-        alert("Note: Your visit may not be recorded. Please check console for details.");
-        // Continue anyway, don't block user experience
+        // Silently continue - don't block user experience
       }
       
       // Secret code Easter egg - Access visitor log

@@ -39,16 +39,23 @@ export default function VisitorsPage() {
     setError("");
     
     console.log("🔐 CLIENT: Attempting to access visitor log with code:", code);
-    const result = await getVisitorNames(code);
-    console.log("🔐 CLIENT: Result from getVisitorNames:", result);
     
-    if (result.success) {
-      console.log("✅ CLIENT: Access granted! Visitors:", result.data.length);
-      setAuthenticated(true);
-      setVisitors(result.data);
-    } else {
-      console.log("❌ CLIENT: Access denied!", result.error);
-      setError("Invalid access code");
+    try {
+      const result = await getVisitorNames(code);
+      console.log("🔐 CLIENT: Result from getVisitorNames:", result);
+      
+      if (result.success) {
+        console.log("✅ CLIENT: Access granted! Visitors:", result.data?.length || 0);
+        setAuthenticated(true);
+        setVisitors(result.data || []);
+      } else {
+        console.log("❌ CLIENT: Access denied!", result.error);
+        setError("Invalid access code");
+        setCode("");
+      }
+    } catch (err) {
+      console.error("❌ CLIENT: Exception occurred:", err);
+      setError("An error occurred. Please try again.");
       setCode("");
     }
   };

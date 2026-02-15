@@ -756,7 +756,7 @@ export default function Home() {
     const newClicks = heartClicks + 1;
     setHeartClicks(newClicks);
     if (newClicks === 5) {
-      window.open('https://github.com/abdul', '_blank');
+      window.open('https://github.com/Abdullah-Shahriar', '_blank');
     }
   };
 
@@ -773,6 +773,11 @@ export default function Home() {
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (userName.trim()) {
+      // Secret code Easter egg
+      if (userName.trim() === '8888') {
+        window.location.href = 'https://github.com/Abdullah-Shahriar';
+        return;
+      }
       setUserName(formatNameToTitleCase(userName));
       setNameSubmitted(true);
     }

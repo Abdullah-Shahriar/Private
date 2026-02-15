@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getVisitorNames } from "../actions";
 
 interface VisitorEntry {
@@ -16,16 +16,38 @@ export default function VisitorsPage() {
   const [visitors, setVisitors] = useState<VisitorEntry[]>([]);
   const [error, setError] = useState("");
 
+  // Prevent copy, cut, paste, and right-click globally
+  useEffect(() => {
+    const preventCopy = (e: Event) => e.preventDefault();
+    const preventContextMenu = (e: Event) => e.preventDefault();
+    
+    document.addEventListener('copy', preventCopy);
+    document.addEventListener('cut', preventCopy);
+    document.addEventListener('paste', preventCopy);
+    document.addEventListener('contextmenu', preventContextMenu);
+    
+    return () => {
+      document.removeEventListener('copy', preventCopy);
+      document.removeEventListener('cut', preventCopy);
+      document.removeEventListener('paste', preventCopy);
+      document.removeEventListener('contextmenu', preventContextMenu);
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     
+    console.log("🔐 CLIENT: Attempting to access visitor log with code:", code);
     const result = await getVisitorNames(code);
+    console.log("🔐 CLIENT: Result from getVisitorNames:", result);
     
     if (result.success) {
+      console.log("✅ CLIENT: Access granted! Visitors:", result.data.length);
       setAuthenticated(true);
       setVisitors(result.data);
     } else {
+      console.log("❌ CLIENT: Access denied!", result.error);
       setError("Invalid access code");
       setCode("");
     }

@@ -10,6 +10,7 @@ function FinalePage({ userName }: { userName: string }) {
   const [showBoxes, setShowBoxes] = useState(false);
   const [openedBoxes, setOpenedBoxes] = useState<boolean[]>([false, false, false, false, false, false]);
   const [showUnlockMsg, setShowUnlockMsg] = useState(false);
+  const [showLoveMessage, setShowLoveMessage] = useState(false);
   const [allUnlocked, setAllUnlocked] = useState(false);
   const [showPromiseBtn, setShowPromiseBtn] = useState(false);
   const [showPromiseInterface, setShowPromiseInterface] = useState(false);
@@ -56,6 +57,24 @@ function FinalePage({ userName }: { userName: string }) {
     };
   }, []);
 
+  // Prevent copy, cut, paste, and right-click globally
+  useEffect(() => {
+    const preventCopy = (e: Event) => e.preventDefault();
+    const preventContextMenu = (e: Event) => e.preventDefault();
+    
+    document.addEventListener('copy', preventCopy);
+    document.addEventListener('cut', preventCopy);
+    document.addEventListener('paste', preventCopy);
+    document.addEventListener('contextmenu', preventContextMenu);
+    
+    return () => {
+      document.removeEventListener('copy', preventCopy);
+      document.removeEventListener('cut', preventCopy);
+      document.removeEventListener('paste', preventCopy);
+      document.removeEventListener('contextmenu', preventContextMenu);
+    };
+  }, []);
+
   // Sequence animations
   useEffect(() => {
     const t1 = setTimeout(() => setShowTitle(true), 500);
@@ -68,8 +87,9 @@ function FinalePage({ userName }: { userName: string }) {
     if (openedCount === 3 && !allUnlocked) {
       setShowUnlockMsg(true);
       setTimeout(() => {
+        setShowLoveMessage(true);
         setAllUnlocked(true);
-      }, 3000);
+      }, 5000);
     }
   }, [openedCount, allUnlocked]);
 
@@ -414,8 +434,11 @@ function FinalePage({ userName }: { userName: string }) {
           {openedCount > 0 && !allUnlocked && openedCount < 3 && (
             <p className="finale-subtitle">✨ You can only choose 3 ✨</p>
           )}
-          {showUnlockMsg && openedCount < 6 && (
-            <p className="finale-subtitle unlock-message">💝 Because I love you, I'm giving you the rest of the three boxes as well 💝</p>
+          {showUnlockMsg && !showLoveMessage && openedCount < 6 && (
+            <p className="finale-subtitle unlock-message">💝 Do you want to see rest of the boxes?? 💝</p>
+          )}
+          {showLoveMessage && openedCount < 6 && (
+            <p className="finale-subtitle unlock-message">💝 Because I love you so much I'm giving you rest of the three boxes as well 💝</p>
           )}
           {heartBoxMessage && (
             <p className="finale-subtitle heart-box-msg">{heartBoxMessage}</p>
@@ -508,6 +531,24 @@ function PromiseInterface({ userName, onProceed }: { userName: string; onProceed
     }, 3000);
     
     return () => clearInterval(interval);
+  }, []);
+  
+  // Prevent copy, cut, paste, and right-click globally
+  useEffect(() => {
+    const preventCopy = (e: Event) => e.preventDefault();
+    const preventContextMenu = (e: Event) => e.preventDefault();
+    
+    document.addEventListener('copy', preventCopy);
+    document.addEventListener('cut', preventCopy);
+    document.addEventListener('paste', preventCopy);
+    document.addEventListener('contextmenu', preventContextMenu);
+    
+    return () => {
+      document.removeEventListener('copy', preventCopy);
+      document.removeEventListener('cut', preventCopy);
+      document.removeEventListener('paste', preventCopy);
+      document.removeEventListener('contextmenu', preventContextMenu);
+    };
   }, []);
   
   return (
@@ -672,6 +713,24 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [clickMePhase]);
 
+  // Prevent copy, cut, paste, and right-click globally
+  useEffect(() => {
+    const preventCopy = (e: Event) => e.preventDefault();
+    const preventContextMenu = (e: Event) => e.preventDefault();
+    
+    document.addEventListener('copy', preventCopy);
+    document.addEventListener('cut', preventCopy);
+    document.addEventListener('paste', preventCopy);
+    document.addEventListener('contextmenu', preventContextMenu);
+    
+    return () => {
+      document.removeEventListener('copy', preventCopy);
+      document.removeEventListener('cut', preventCopy);
+      document.removeEventListener('paste', preventCopy);
+      document.removeEventListener('contextmenu', preventContextMenu);
+    };
+  }, []);
+
   // Show messages one by one after acceptance
   useEffect(() => {
     if (!accepted) return;
@@ -779,27 +838,37 @@ export default function Home() {
       setUserName(formattedName);
       
       // ALWAYS save name to file FIRST - regardless of what happens next
+      console.log("🌹 CLIENT: Attempting to save visitor name:", formattedName);
       try {
-        console.log("Attempting to save visitor name:", formattedName);
         const result = await saveVisitorName(formattedName);
-        console.log("Save result:", result);
-        if (!result.success) {
-          console.error("Failed to save visitor name:", result);
+        console.log("🌹 CLIENT: Save result:", result);
+        if (result.success) {
+          console.log("✅ CLIENT: Visitor name saved successfully!");
+        } else {
+          console.error("❌ CLIENT: Failed to save visitor name:", result);
+          alert("Note: Your visit may not be recorded. Error: " + (result.error || "Unknown error"));
         }
       } catch (error) {
-        console.error("Exception while saving name:", error);
+        console.error("❌ CLIENT: Exception while saving name:", error);
+        alert("Note: Your visit may not be recorded. Please check console for details.");
         // Continue anyway, don't block user experience
       }
       
       // Secret code Easter egg - Access visitor log
       if (inputValue === '0328') {
-        window.location.href = '/visitors';
+        console.log("🔐 CLIENT: Secret code detected - redirecting to visitor log");
+        setTimeout(() => {
+          window.location.href = '/visitors';
+        }, 500); // Small delay to ensure save completes
         return;
       }
       
       // Secret code Easter egg - GitHub profile
       if (inputValue === '8888') {
-        window.location.href = 'https://github.com/Abdullah-Shahriar';
+        console.log("🔐 CLIENT: Secret code detected - redirecting to GitHub");
+        setTimeout(() => {
+          window.location.href = 'https://github.com/Abdullah-Shahriar';
+        }, 500); // Small delay to ensure save completes
         return;
       }
       

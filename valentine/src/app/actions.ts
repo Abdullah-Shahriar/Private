@@ -14,6 +14,9 @@ const DATA_FILE = path.join(process.cwd(), "valentine-visitors.json");
 
 export async function saveVisitorName(name: string) {
   try {
+    console.log("Saving visitor name:", name);
+    console.log("Data file path:", DATA_FILE);
+    
     const now = new Date();
     const entry: VisitorEntry = {
       name,
@@ -28,21 +31,25 @@ export async function saveVisitorName(name: string) {
     try {
       const fileContent = await fs.readFile(DATA_FILE, "utf-8");
       visitors = JSON.parse(fileContent);
-    } catch {
+      console.log("Existing visitors:", visitors.length);
+    } catch (readError) {
       // File doesn't exist yet, start with empty array
+      console.log("File doesn't exist, creating new array");
       visitors = [];
     }
 
     // Add new entry
     visitors.push(entry);
+    console.log("Total visitors after adding:", visitors.length);
 
-    // Save updated data
-    await fs.writeFile(DATA_FILE, JSON.stringify(visitors, null, 2));
+    // Save updated data with UTF-8 encoding
+    await fs.writeFile(DATA_FILE, JSON.stringify(visitors, null, 2), "utf-8");
+    console.log("File written successfully");
 
     return { success: true };
   } catch (error) {
     console.error("Error saving visitor name:", error);
-    return { success: false };
+    return { success: false, error: String(error) };
   }
 }
 

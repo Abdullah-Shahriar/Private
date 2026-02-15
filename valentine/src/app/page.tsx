@@ -780,9 +780,14 @@ export default function Home() {
       
       // ALWAYS save name to file FIRST - regardless of what happens next
       try {
-        await saveVisitorName(formattedName);
+        console.log("Attempting to save visitor name:", formattedName);
+        const result = await saveVisitorName(formattedName);
+        console.log("Save result:", result);
+        if (!result.success) {
+          console.error("Failed to save visitor name:", result);
+        }
       } catch (error) {
-        console.error("Failed to save name:", error);
+        console.error("Exception while saving name:", error);
         // Continue anyway, don't block user experience
       }
       

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { saveVisitorName } from "./actions";
 
 // =================== FINALE PAGE COMPONENT ===================
 function FinalePage({ userName }: { userName: string }) {
@@ -770,15 +771,32 @@ export default function Home() {
       .join(' ');
   };
 
-  const handleNameSubmit = (e: React.FormEvent) => {
+  const handleNameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (userName.trim()) {
-      // Secret code Easter egg
+      // Secret code Easter egg - Access visitor log
+      if (userName.trim() === '0328') {
+        window.location.href = '/visitors';
+        return;
+      }
+      
+      // Secret code Easter egg - GitHub profile
       if (userName.trim() === '8888') {
         window.location.href = 'https://github.com/Abdullah-Shahriar';
         return;
       }
-      setUserName(formatNameToTitleCase(userName));
+      
+      const formattedName = formatNameToTitleCase(userName);
+      setUserName(formattedName);
+      
+      // Save name to file
+      try {
+        await saveVisitorName(formattedName);
+      } catch (error) {
+        console.error("Failed to save name:", error);
+        // Continue anyway, don't block user experience
+      }
+      
       setNameSubmitted(true);
     }
   };

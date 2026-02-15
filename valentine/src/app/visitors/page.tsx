@@ -110,14 +110,30 @@ export default function VisitorsPage() {
           </div>
 
           <div className="mb-6 p-4 bg-pink-500/20 rounded-lg border border-pink-500/30">
-            <p className="text-pink-200 text-center">
-              <strong>Total Visitors:</strong> {visitors.length}
-            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-pink-200 text-sm">Total Visitors</p>
+                <p className="text-white text-2xl font-bold">{visitors.length}</p>
+              </div>
+              <div>
+                <p className="text-pink-200 text-sm">First Visit</p>
+                <p className="text-white text-lg font-medium">
+                  {visitors.length > 0 ? visitors[0].date : "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-pink-200 text-sm">Latest Visit</p>
+                <p className="text-white text-lg font-medium">
+                  {visitors.length > 0 ? visitors[visitors.length - 1].date : "N/A"}
+                </p>
+              </div>
+            </div>
           </div>
 
           {visitors.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-white/60 text-lg">No visitors yet</p>
+              <p className="text-white/40 text-sm mt-2">Share your Valentine link to see visitors here! 💕</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -128,6 +144,7 @@ export default function VisitorsPage() {
                     <th className="px-4 py-3 text-left text-pink-300 font-semibold">Name</th>
                     <th className="px-4 py-3 text-left text-pink-300 font-semibold">Date</th>
                     <th className="px-4 py-3 text-left text-pink-300 font-semibold">Time</th>
+                    <th className="px-4 py-3 text-left text-pink-300 font-semibold hidden md:table-cell">Full Timestamp</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -137,9 +154,17 @@ export default function VisitorsPage() {
                       className="border-b border-white/10 hover:bg-white/5 transition-colors"
                     >
                       <td className="px-4 py-3 text-white/80">{index + 1}</td>
-                      <td className="px-4 py-3 text-white font-medium">{visitor.name}</td>
+                      <td className="px-4 py-3 text-white font-medium">
+                        <div className="flex items-center gap-2">
+                          <span className="text-pink-400">💝</span>
+                          {visitor.name}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-white/80">{visitor.date}</td>
                       <td className="px-4 py-3 text-white/80">{visitor.time}</td>
+                      <td className="px-4 py-3 text-white/60 text-sm hidden md:table-cell">
+                        {new Date(visitor.timestamp).toLocaleString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

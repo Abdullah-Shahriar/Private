@@ -626,6 +626,7 @@ export default function Home() {
   const [sparkles, setSparkles] = useState<number[]>([]);
   const [acceptedTypewriterText, setAcceptedTypewriterText] = useState<string[]>([]);
   const [fireflies, setFireflies] = useState<Array<{id: number, x: number, y: number, delay: number, duration: number}>>([]);
+  const [heartClicks, setHeartClicks] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -751,6 +752,14 @@ export default function Home() {
     setClickMePhase(true);
   };
 
+  const handleBigHeartClick = () => {
+    const newClicks = heartClicks + 1;
+    setHeartClicks(newClicks);
+    if (newClicks === 5) {
+      window.open('https://github.com/abdul', '_blank');
+    }
+  };
+
   const formatNameToTitleCase = (name: string): string => {
     return name
       .trim()
@@ -873,7 +882,7 @@ export default function Home() {
 
         {/* Big Heart */}
         <div className="big-heart-container">
-          <div className="big-heart">❤️</div>
+          <div className="big-heart" onClick={handleBigHeartClick} style={{ cursor: 'pointer' }}>❤️</div>
         </div>
 
         <h1 className="text-4xl md:text-6xl font-bold text-pink-600 mt-8 text-center yay-text">
